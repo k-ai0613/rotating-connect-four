@@ -1,20 +1,24 @@
 import { OnlineGameContainer } from '@/components/online-game-container';
 import { Metadata } from 'next';
 
-interface GamePageProps {
-  params: {
-    id: string;
-  };
-  searchParams?: Record<string, string | string[]>;
-}
+// Next.js 15の型定義に合わせる
+type Params = {
+  id: string;
+};
 
-export async function generateMetadata({ params }: GamePageProps): Promise<Metadata> {
+type Props = {
+  params: Params;
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `ゲーム ${params.id} | 回転コネクトフォー`,
   };
 }
 
-export default function GamePage({ params }: GamePageProps) {
+// export defaultの前にasyncを追加
+export default async function GamePage({ params }: Props) {
   return (
     <main>
       <OnlineGameContainer gameId={params.id} />
