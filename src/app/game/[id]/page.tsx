@@ -1,14 +1,16 @@
 import { OnlineGameContainer } from '@/components/online-game-container';
 import { Metadata } from 'next';
 
-export const metadata: Metadata = {
-  title: 'オンライン対戦 | 回転コネクトフォー',
-  description: 'オンラインで友達と回転コネクトフォーでプレイしよう',
-};
-
 interface GamePageProps {
   params: {
     id: string;
+  };
+  searchParams?: Record<string, string | string[]>;
+}
+
+export async function generateMetadata({ params }: GamePageProps): Promise<Metadata> {
+  return {
+    title: `ゲーム ${params.id} | 回転コネクトフォー`,
   };
 }
 
