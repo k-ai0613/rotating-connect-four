@@ -36,9 +36,9 @@ let io: ServerIO | null = null;
 
 export const dynamic = 'force-dynamic';
 
-// Next.jsのglobalオブジェクトにSocketIOサーバーを保存
+// サーバー変数をexportしない
 // @ts-ignore
-export const { server } = global.server || {};
+const globalServer = global.server || {};
 
 // Socket.ioサーバーが既に存在するかチェック
 // @ts-ignore
@@ -67,7 +67,7 @@ function ensureIOServer() {
     });
 
     // ソケット接続イベントの処理
-    io.on('connection', (socket) => {
+    io?.on('connection', (socket) => {
       console.log('Client connected:', socket.id);
 
       // 新しいゲーム作成
@@ -103,7 +103,8 @@ function ensureIOServer() {
             white: null
           },
           spectators: [],
-          isWaiting: true
+          isWaiting: true,
+          isProcessingMove: false
         };
         
         // ゲーム状態を保存
@@ -247,11 +248,11 @@ function ensureIOServer() {
         if (gameState.settings.rotationMode !== 'manual') return;
         
         // 回転回数の制限をチェック
-        if (gameState.blockRotations[rotation.blockIndex] >= gameState.maxRotations) return;
+        if (gameState.blockRotations[rotation.blockIndex as keyof typeof gameState.blockRotations] >= gameState.maxRotations) return;
         
         // ブロックを回転
         gameState.board = rotateBlock(gameState.board, rotation.blockIndex, rotation.direction);
-        gameState.blockRotations[rotation.blockIndex]++;
+        gameState.blockRotations[rotation.blockIndex as keyof typeof gameState.blockRotations]++;
         gameState.lastRotation = rotation;
         
         // 勝敗の確認
@@ -342,10 +343,10 @@ function handlePlayerDisconnect(socketId: string, gameId: string) {
   
   // プレイヤーの場合、ゲームから削除
   if (gameState.players.black === socketId) {
-    gameState.players.black = null;
+    gameState.players.black = '';
     gameState.isWaiting = true;
   } else if (gameState.players.white === socketId) {
-    gameState.players.white = null;
+    gameState.players.white = '';
     gameState.isWaiting = true;
   } else {
     // 観戦者の場合
@@ -373,7 +374,7 @@ export async function GET(req: NextRequest) {
     io = res.socket.server.io;
     
     // Socket.ioイベントハンドラを設定
-    io.on('connection', (socket) => {
+    io?.on('connection', (socket) => {
       console.log('Client connected:', socket.id);
       
       // 切断イベント
@@ -447,6 +448,7 @@ export async function GET(req: NextRequest) {
     });
   }
   
+  ensureIOServer();
   return new Response('Socket.io Server is running', { status: 200 });
 }
 
